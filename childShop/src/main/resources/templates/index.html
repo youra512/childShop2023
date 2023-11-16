@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/layout}">
+
+<head>
+  	<!-- css, JS -->
+  	<link th:href="@{/bootstrap/5.3.1/css/bootstrap.min.css}" rel="stylesheet">
+	<script th:src="@{/bootstrap/5.3.1/js/bootstrap.bundle.min.js}"></script>
+	
+	<!-- 11.8 -->
+	<style>
+	/* 전체 슬라이드 패널 */
+	div#slide_wrap {
+		margin:auto;
+		width:100vw;
+		height:400px;
+	}
+	
+	div#slide {
+		display:flex; 
+		flex-direction:row;
+		width:1250px; /* 2023.7.19 : 갤러리 전시 상품 갯수 5개로 설정 */
+		height:300px;			
+		overflow-x:hidden;
+		overflow-y:hidden;
+	}
+
+	/* 개별 슬라이드 패널 */
+	div[id^=s] {
+		width:250px;
+		height:300px;
+		display:flex; 
+		align-items:center;
+		justify-content:center;	
+		overflow:hidden;		
+	}
+
+	/* 개별 상품 이미지 */
+	div[id^=s] img {
+		width:228px;
+		height:298px;
+	}
+
+	/* 슬라이드 위로 위치 이동 */
+	/* 슬라이드 버트 패널 */
+	div#btn_left_pnl {
+		position:absolute;
+		left:calc(50vw - 600px);
+		top:400px;	
+		z-index:5;
+		opacity:0.7;
+	}
+	
+	div#btn_right_pnl {
+		position:absolute;
+		left:calc(50vw + 550px);
+		top:400px;
+		z-index:5;
+		opacity:0.7;	
+	}
+	
+	/* 슬라이드 버튼 */
+	/* 
+	button#btn_left {		
+		left:20px;
+		top:120px;	
+		opacity:0.7;
+	}
+
+	button#btn_right {		
+		left:1170px; 
+		top:120px;	
+		opacity:0.7;
+	} */
+	
+	div#gallery{
+		padding: 100 0 0;
+		width:100vw;
+	}
+	
+	div#gal_wrap{
+		margin:auto;
+		display:flex;
+		flex-wrap: wrap;
+		align-content: center;
+		justify-content: space-between;
+		width:1100px;
+		
+	}
+	
+/* 	div.gal_image{
+		width:228px;
+		height:298px;
+	} */
+	
+	div.gal_prod{
+		width:250px;
+		height:400px;
+	
+	}
+	
+	div.gal_prod a{
+	text-decoration:none;
+	color:inherit;
+	font-weight:bold;}
+	
+	
+</style>
+
+<script th:inline="javascript">
+		// "좌/우측(양방향)"으로 이동하는 슬라이드
+		window.onload = function() {
+
+			// 2023.7.19 변수 위치 이동 : 상품 갯수
+			let productLen = 5;
+
+			////////////////////////////////////////////////////////////////////////////////
+			//
+			// 2023.7.19 : 초기 슬라이드 CSS 설정
+			// opacity : 0.3
+			let allSlides = document.querySelectorAll("div#slide div[id^=s]");
+			for (let slide of allSlides) {
+				slide.style.opacity = 0.3;
+				slide.style.transition = 'all 1s';		
+			}
+
+			// "초기" 정중앙 슬라이드 설정
+			// 정중앙 슬라이드 opacity = 1로 설정
+
+			// 슬라이드 갯수 5개일 경우 => 정중앙 위치 슬라이드			
+			let centerNo = Math.ceil(productLen / 2);
+			console.log("centerNo : " + centerNo);
+			let centerSlide = document.getElementById(`s${centerNo}`);				
+			console.log("정중앙 슬라이드 ID : " + centerSlide.id);
+
+			centerSlide.style.width = "300px";
+			centerSlide.style.height = "300px";
+
+			centerSlide.style.opacity = "1";
+			centerSlide.style.transition = 'all 1s';	
+
+			////////////////////////////////////////////////////////////////////////////
+
+			// 이동 카운터 변수
+			let count = 1;
+
+			// 좌측 이동 버튼	
+			let btnLeft = document.getElementById("btn_left");	
+
+			// 우측 이동 버튼	
+			let btnRight = document.getElementById("btn_right"); 
+
+			// 슬라이드들을 둘러싸고 있는 바깥 슬라이드 패널 인식
+			let slide = document.getElementById("slide");
+
+			// 좌측 이동 버튼 클릭시 이벤트 처리
+			btnLeft.onclick = function() {		
+
+				////
+				// 중요) 맨앞의(좌측 첫번째) 슬라이드 아이디
+				let id = document.querySelector("div#slide div:first-child").getAttribute("id");
+				id = id.substring(1); // id="s1" => 카운터("1") 추출
+				count = id;
+
+				console.log("맨 좌측 아이디 : "+ id);
+
+				let leftFirstSlideContent = document.getElementById(`s${count}`).innerHTML;
+
+				console.log("현재 슬라이드 번호(카운터) : " + count);
+
+				// 맨앞의 슬라이드를 가장 뒷부분에 추가
+				slide.innerHTML += 
+					`<div id="s${count}">${leftFirstSlideContent}</div>`;
+
+				console.log(`맨앞 슬라이드 : s${count}`);	
+
+				// 맨앞(좌측 첫번째) 슬라이드 제거	
+				document.getElementById(`s${count}`).remove();	
+
+				////////////////////////////////////////////////////////////////////////////////////////
+
+				/* 
+				   2023.7.19 : 트랜지션(transition) 효과 
+				   : 투명도 변환 
+				   : 정중앙에 있는 이미지는 투명도 0 으로 설정하고 나머지는 0.5로 
+				   변화 
+ 
+				   1) 정중앙에 위치한 이미지 파악 ex) 2,3,4,5,1 => 4
+				      : 총 슬라이드 수가 5개면 정중앙 슬라이드는 현재 (맨앞 슬라이드 번호 + 2)번째
+				      : 현재 슬라이드(1) => div#slide div:nth-child(3) 
+					  주의) nth-child는 index가 1부터 시작함
+				*/
+				
+				let currentSlideArr = [];
+				
+				for (let i=1; i<=productLen; i++) {
+
+					// let div = document.querySelectorAll("div#slide div[id^=s]")[i].getAttribute("id");
+					// let div = document.querySelector(`div#slide div[id^=s]:nth-child(${i})`).getAttribute("id");
+					let div = document.querySelector(`div#slide div[id^=s]:nth-child(${i})`).id;
+					currentSlideArr.push(div); // 배열 요소 삽입				
+
+				} //
+
+				console.log("현재 슬라이드 배열 상태 : " + currentSlideArr); 
+				// 현재 슬라이드 상태 배열 파악 ex) ['s2', 's3', 's4', 's5', 's1']			
+
+				// 슬라이드 갯수 5개일 경우 => 정중앙 위치 슬라이드
+				// 주의) 배열은 index가 0부터 시작함
+				centerNo = Math.ceil(productLen / 2) - 1;
+				console.log("centerNo : " + centerNo);
+				centerSlide = document.getElementById(currentSlideArr[centerNo]);				
+				console.log("정중앙 슬라이드 ID : " + centerSlide.id);
+
+				// 모든 슬라이드는 투명도 0.3 로 설정
+				for (let i=1; i<=productLen; i++) {
+
+					let otherSlide = document.getElementById(currentSlideArr[i-1]);		
+					otherSlide.style.opacity = "0.3";
+				} //	
+
+				// 정중앙 슬라이드 opacity = 1로 설정
+				console.log("정중앙 슬라이드 ID-2 : " + centerSlide.id);
+				centerSlide.style.opacity = "1";
+
+				////////////////////////////////////////////////////////////////////////////////////////
+
+				// 카운터 증가
+				count = (count >= productLen+1) ? 1 : ++count; 
+				
+			}; // onclick :// 좌측 이동 버튼 클릭시 이벤트 처리
+
+			/////////////////////////////////////////////////////////////////////////////
+
+			// 우측이동 버튼 클릭시 이벤트 처리
+			btnRight.onclick = function() {
+
+				console.log("현재 슬라이드번호 : " + count);
+				
+				count = productLen + 1 - count; // 카운터 감소
+
+				// 맨뒤(좌측 기준 마지막번째) 슬라이드
+				let lastDiv = document.querySelector("div#slide div:last-child");
+
+				// 맨앞의(좌측 첫번째) 슬라이드
+				let firstDiv = document.querySelector("div#slide div:first-child")
+
+				// 전체 슬라이드 패널의 마지막 슬라이드(lastDiv) 앞에
+				// 첫번째 슬라이드(firstDiv)를 삽입
+				// https://developer.mozilla.org/ko/docs/Web/API/Node/insertBefore
+				slide.insertBefore(lastDiv, firstDiv);
+
+				////////////////////////////////////////////////////////////////////////////////////////
+
+				/* 
+				   2023.7.19 : 트랜지션(transition) 효과 
+				   : 투명도 변환 
+				   : 정중앙에 있는 이미지는 투명도 0 으로 설정하고 나머지는 0.5로 
+				   변화 
+ 
+				   1) 정중앙에 위치한 이미지 파악 ex) 2,3,4,5,1 => 4
+				      : 총 슬라이드 수가 5개면 정중앙 슬라이드는 현재 (맨앞 슬라이드 번호 + 2)번째
+				      : 현재 슬라이드(1) => div#slide div:nth-child(3) 
+					  주의) nth-child는 index가 1부터 시작함
+				*/
+				
+				let currentSlideArr = [];
+
+				for (let i=1; i<=productLen; i++) {
+
+					// let div = document.querySelectorAll("div#slide div[id^=s]")[i].getAttribute("id");
+					// let div = document.querySelector(`div#slide div[id^=s]:nth-child(${i})`).getAttribute("id");
+					let div = document.querySelector(`div#slide div[id^=s]:nth-child(${i})`).id;
+					currentSlideArr.push(div); // 배열 요소 삽입				
+
+				} //
+
+				console.log("현재 슬라이드 배열 상태 : " + currentSlideArr); 
+				// 현재 슬라이드 상태 배열 파악 ex) ['s2', 's3', 's4', 's5', 's1']			
+
+				// 슬라이드 갯수 5개일 경우 => 정중앙 위치 슬라이드
+				// 주의) 배열은 index가 0부터 시작함
+				centerNo = Math.ceil(productLen / 2) - 1;
+				console.log("centerNo : " + centerNo);
+				centerSlide = document.getElementById(currentSlideArr[centerNo]);				
+				console.log("정중앙 슬라이드 ID : " + centerSlide.id);
+
+				// 모든 슬라이드는 투명도 0.3 로 설정
+				for (let i=1; i<=productLen; i++) {
+
+					let otherSlide = document.getElementById(currentSlideArr[i-1]);		
+					otherSlide.style.opacity = "0.3";
+				} //	
+
+				// 정중앙 슬라이드 opacity = 1로 설정
+				console.log("정중앙 슬라이드 ID-2 : " + centerSlide.id);
+				centerSlide.style.opacity = "1";
+
+				////////////////////////////////////////////////////////////////////////////////////////
+
+				// 카운터 증가
+				count = (count >= productLen) ? 1 : ++count; 
+				
+			}; // onclick
+		
+		} // onload
+	</script>
+
+</head>
+
+<div layout:fragment="content" style="min-height:calc(100vh - 200px)">
+
+
+	
+	
+	<!-- 슬라이드 패널 -->
+	<!-- 11.8 -->
+	
+	<div id="slide_wrap">
+	
+		<div id="slide">
+			<!-- <div th:id="${'s' + iterStat.count}"><img th:src="@{${prod.productThumbNail}}"></div> -->		
+			
+			<div th:each="prod,iterStat : ${mainProducts}" th:id="${'s' + iterStat.count}">
+				<a th:href="@{/}"><img th:src="@{'/product_image/' + ${prod.productThumbNail}}"></a>
+			</div>		
+		</div>
+		
+		<!-- <div id="slide">
+			<div id="s1"><img th:src="@{/image/1.jpg}"></div>
+			<div id="s2"><img th:src="@{/image/2.jpg}"></div>
+			<div id="s3"><img th:src="@{/image/3.jpg}"></div>
+			<div id="s4"><img th:src="@{/image/4.jpg}"></div>
+			<div id="s5"><img th:src="@{/image/5.jpg}"></div>
+		</div> -->
+		
+		
+		<!-- 
+			좌측 이동 버튼 
+	
+			- 참고 : bootstrap 마진(margin:다른 물체와의 간격) 조정
+	
+			 ex) mt-1(상위 0.25rem 띄움) ms-1(좌측 .25rem 띄움) m-3(상하좌우 1rem 띄움)
+			 
+			 rem 단위 : https://cafe.naver.com/ezjava3/24 
+		-->
+		<div id="btn_left_pnl">
+			<button id="btn_left" class="btn btn-primary"> <!-- 간격 조정 위해 m-3 제거-->
+				<span class="material-icons mt-1 ms-1"> 
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+		  			<path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+					</svg>
+				</span>
+			</button>
+		</div>
+		
+		<!-- 
+			우측 이동 버튼 
+	
+			참고 : bootstrap 마진(margin:다른 물체와의 간격) 조정
+			
+			ex) mt-1(상위 0.25rem 띄움)
+	
+			rem 단위 : https://cafe.naver.com/ezjava3/24 
+		-->
+		<div id="btn_right_pnl">
+			<button id="btn_right" class="btn btn-primary">
+				<span class="material-icons mt-1">
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
+		  			<path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/>
+					</svg>
+				</span>
+			</button>
+		</div>	
+		
+	</div> <hr style="width:1300px;margin:auto;"> <!-- 슬라이드 패널 -->
+	
+	<div>
+	<h2 style="padding: 20px; margin:0px 0px 0px 200px;">
+	보육사 추천상품</h2>
+	</div>
+	
+	<!-- TODO -->
+	<div id="gallery">
+		<!-- flex -->
+		<div id="gal_wrap">
+			
+			<!-- each -->
+			<div class="gal_prod" th:each="prod,iterStat : ${galleryProducts}" >
+				
+				<div><a th:href="@{/}">
+					<img style= "width:228px;height:298px;" th:src="@{'/product_image/' + ${prod.productThumbNail}}">
+				</div> 
+				<div th:text="${prod.productName}"></div>
+				<div th:text="${#numbers.formatInteger(prod.productPrice,3,'COMMA') + '원'}"></div>
+				</a>
+			</div>
+			
+		</div>
+		
+		<nav aria-label="Page navigation example">
+  			<ul class="pagination justify-content-center">
+			    <li class="page-item disabled">
+			      <a class="page-link">Previous</a>
+			    </li>
+			    <li class="page-item"><a class="page-link" href="#">1</a></li>
+			    <li class="page-item"><a class="page-link" href="#">2</a></li>
+			    <li class="page-item"><a class="page-link" href="#">3</a></li>
+			    <li class="page-item">
+			      <a class="page-link" href="#">Next</a>
+			    </li>
+  			</ul>
+		</nav>
+	
+	</div>
+	
+</div>
+
+</html>

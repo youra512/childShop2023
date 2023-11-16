@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/layout}">
+      
+<head>
+<!-- css, JS -->
+
+	<link th:href="@{/bootstrap/5.3.1/css/bootstrap.min.css}" rel="stylesheet">
+	<script th:src="@{/bootstrap/5.3.1/js/bootstrap.bundle.min.js}"></script>
+<style>
+	/* div.menu{
+        justify-content: space-around;
+        align-items: flex-end;
+        height: 120px;
+    }
+    div.menu li {
+        list-style: none;
+    }
+    div.menu li a{
+        text-decoration: none;
+        color: black;
+    } */
+	
+
+
+</style>
+</head> 
+
+<div th:fragment="header">
+
+    <div style="background-color:#fceaf4; color:#fff; height:200px">
+    
+    <div id="boyuksa">
+		<a th:href="@{/}"><img style="width:250px; height:70px;" src="/image/보육사.png"></a>
+	</div>
+        <div id="page">
+        	<a th:href="@{/content1}" style="text-decoration:none;">로그인</a>&nbsp;
+        	<a th:href="@{/content2}" style="text-decoration:none;">고객 게시판</a>&nbsp;
+        	<a th:href="@{/productList}" style="text-decoration:none;">상품리스트</a>&nbsp;
+        </div>
+        
+        <!-- <div>
+            <ul class="menu" style="display:flex;">
+                <li><a th:href="">시설교구</a></li>
+                <li><a th:href="">영아교구</a></li>
+                <li><a th:href="">유아교구</a></li>
+                <li><a th:href="">특가할인</a></li>
+                <li><a th:href="">교육자료</a></li>
+                <li><a th:href="">멀티자료</a></li>
+            </ul>
+        </div> -->
+    </div>
+    
+</div>
+
+</html>
